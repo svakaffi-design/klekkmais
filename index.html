@@ -88,6 +88,38 @@ input,button{
   <button onclick="restart()">Spill igjen</button>
 </div>
 
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAhhykV2g7Zefc3put128PO0b341LA5dog",
+    authDomain: "museflukt.firebaseapp.com",
+    projectId: "museflukt",
+    storageBucket: "museflukt.firebasestorage.app",
+    messagingSenderId: "395858262096",
+    appId: "1:395858262096:web:d021672f7628bf14e1f955"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // Expose db functions to global scope so non-module scripts can use them
+  window.firebaseDB = db;
+  window.firebaseAddDoc = addDoc;
+  window.firebaseCollection = collection;
+  window.firebaseGetDocs = getDocs;
+  window.firebaseQuery = query;
+  window.firebaseOrderBy = orderBy;
+  window.firebaseLimit = limit;
+
+  // Load scores on startup
+  window.addEventListener("load", () => {
+    displayScores();
+  });
+</script>
+
 <script>
 const canvas=document.getElementById("game");
 const ctx=canvas.getContext("2d");
@@ -194,7 +226,7 @@ function loop(timestamp){
   if(level>currentLevelShown){
     currentLevelShown=level;
     showLevelMessage(level);
-    spawnDelay*=0.65; // tydeligere økning
+    spawnDelay*=0.65;
   }
 
   if(timestamp-lastSpawn>spawnDelay){
@@ -236,27 +268,81 @@ function restart(){
   location.reload();
 }
 
-function saveScore(){
+async function saveScore(){
   let name=document.getElementById("nameInput").value||"Anonym";
   let time=parseFloat(document.getElementById("finalTime").textContent);
-  let scores=JSON.parse(localStorage.getItem("scores")||"[]");
-  scores.push({name,time});
-  scores.sort((a,b)=>b.time-a.time);
-  scores=scores.slice(0,10);
-  localStorage.setItem("scores",JSON.stringify(scores));
-  displayScores();
+
+  try {
+    const db = window.firebaseDB;
+    const addDoc = window.firebaseAddDoc;
+    const collection = window.firebaseCollection;
+
+    if(db && addDoc && collection){
+      await addDoc(collection(db, "scores"), {
+        name: name,
+        time: time,
+        timestamp: Date.now()
+      });
+      console.log("Score lagret i Firebase!");
+    } else {
+      // Fallback til localStorage om Firebase ikke er klar
+      let scores=JSON.parse(localStorage.getItem("scores")||"[]");
+      scores.push({name,time});
+      scores.sort((a,b)=>b.time-a.time);
+      scores=scores.slice(0,10);
+      localStorage.setItem("scores",JSON.stringify(scores));
+    }
+  } catch(err) {
+    console.error("Feil ved lagring:", err);
+    // Fallback til localStorage
+    let scores=JSON.parse(localStorage.getItem("scores")||"[]");
+    scores.push({name,time});
+    scores.sort((a,b)=>b.time-a.time);
+    scores=scores.slice(0,10);
+    localStorage.setItem("scores",JSON.stringify(scores));
+  }
+
   restart();
 }
 
-function displayScores(){
+async function displayScores(){
+  const scoreboard = document.getElementById("scoreboard");
+
+  try {
+    const db = window.firebaseDB;
+    const getDocs = window.firebaseGetDocs;
+    const collection = window.firebaseCollection;
+    const q_fn = window.firebaseQuery;
+    const orderBy = window.firebaseOrderBy;
+    const limit = window.firebaseLimit;
+
+    if(db && getDocs && collection){
+      const q = q_fn(collection(db, "scores"), orderBy("time", "desc"), limit(10));
+      const snapshot = await getDocs(q);
+      let html="<h3>Topp 10</h3>";
+      let i=1;
+      snapshot.forEach(doc => {
+        const s = doc.data();
+        html+=`${i}. ${s.name} - ${s.time}s<br>`;
+        i++;
+      });
+      scoreboard.innerHTML=html;
+      return;
+    }
+  } catch(err) {
+    console.error("Feil ved henting av scores:", err);
+  }
+
+  // Fallback til localStorage
   let scores=JSON.parse(localStorage.getItem("scores")||"[]");
   let html="<h3>Topp 10</h3>";
   scores.forEach((s,i)=>{
     html+=`${i+1}. ${s.name} - ${s.time}s<br>`;
   });
-  document.getElementById("scoreboard").innerHTML=html;
+  scoreboard.innerHTML=html;
 }
 
+// Initial load av scores (også kalt fra Firebase module når klar)
 displayScores();
 </script>
 
