@@ -197,6 +197,12 @@ class Shape{
   }
 
   collide(){
+    if(this.type===0){
+      // Rektangel: sjekk om musen er innenfor rektangelets faktiske grenser
+      return mouse.x > this.x && mouse.x < this.x + this.size &&
+             mouse.y > this.y && mouse.y < this.y + this.size * 0.6;
+    }
+    // Sirkel og polygon: avstandssjekk fra sentrum
     let dx=mouse.x-this.x;
     let dy=mouse.y-this.y;
     return Math.sqrt(dx*dx+dy*dy)<this.size;
