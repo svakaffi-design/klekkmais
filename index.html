@@ -2,67 +2,183 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>MUSEFLUKT</title>
-
 <style>
-body{
-  margin:0;
-  overflow:hidden;
-  background:#111;
-  color:white;
-  font-family:Arial,sans-serif;
-}
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
 
-#ui{
-  position:fixed;
-  top:10px;
-  left:10px;
-  z-index:10;
-}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    overflow:hidden;
+    background:#0a0a0f;
+    color:white;
+    font-family:'Share Tech Mono',monospace;
+    touch-action:none;
+  }
 
-#scoreboard{
-  margin-top:10px;
-  font-size:14px;
-}
+  #ui{
+    position:fixed;
+    top:16px;
+    left:16px;
+    z-index:10;
+    font-size:13px;
+    letter-spacing:0.05em;
+    color:#aaa;
+  }
 
-canvas{display:block;}
+  #timeDisplay{
+    font-family:'Orbitron',sans-serif;
+    font-size:22px;
+    color:#fff;
+    letter-spacing:0.1em;
+  }
 
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.9);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  text-align:center;
-  padding:40px;
-}
+  #levelDisplay{
+    font-size:12px;
+    color:#555;
+    margin-top:2px;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+  }
 
-#levelMessage{
-  position:fixed;
-  top:40%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  font-size:48px;
-  font-weight:bold;
-  opacity:0;
-  transition:opacity 0.5s;
-  pointer-events:none;
-}
+  #scoreboard{
+    margin-top:12px;
+    font-size:12px;
+    color:#555;
+    line-height:1.8;
+  }
 
-input,button{
-  padding:8px;
-  margin:6px;
-  font-size:16px;
-}
+  #scoreboard h3{
+    color:#333;
+    font-family:'Orbitron',sans-serif;
+    font-size:10px;
+    letter-spacing:0.2em;
+    margin-bottom:6px;
+  }
+
+  canvas{display:block;}
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(5,5,10,0.97);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    text-align:center;
+    padding:40px;
+    gap:12px;
+  }
+
+  .overlay h1{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(32px,8vw,72px);
+    font-weight:900;
+    letter-spacing:0.15em;
+    color:#fff;
+    text-shadow: 0 0 40px rgba(255,60,60,0.6), 0 0 80px rgba(255,60,60,0.2);
+  }
+
+  .overlay h2{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(20px,5vw,42px);
+    font-weight:700;
+    letter-spacing:0.1em;
+    color:#ff3c3c;
+  }
+
+  .overlay p{
+    color:#666;
+    font-size:clamp(12px,2vw,15px);
+    max-width:420px;
+    line-height:1.8;
+    letter-spacing:0.03em;
+  }
+
+  .overlay .score-big{
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(28px,6vw,56px);
+    color:#fff;
+    letter-spacing:0.1em;
+  }
+
+  .overlay .score-label{
+    font-size:11px;
+    color:#444;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    margin-top:-8px;
+  }
+
+  button{
+    padding:12px 32px;
+    font-size:13px;
+    font-family:'Orbitron',sans-serif;
+    letter-spacing:0.15em;
+    background:transparent;
+    color:#fff;
+    border:1px solid #333;
+    cursor:pointer;
+    transition:all 0.2s;
+    text-transform:uppercase;
+  }
+
+  button:hover, button:active{
+    background:#fff;
+    color:#000;
+    border-color:#fff;
+  }
+
+  input{
+    padding:10px 16px;
+    font-size:14px;
+    font-family:'Share Tech Mono',monospace;
+    background:#111;
+    color:#fff;
+    border:1px solid #333;
+    outline:none;
+    letter-spacing:0.05em;
+    text-align:center;
+    width:200px;
+  }
+
+  input:focus{border-color:#555;}
+
+  #levelMessage{
+    position:fixed;
+    top:42%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-family:'Orbitron',sans-serif;
+    font-size:clamp(24px,6vw,52px);
+    font-weight:900;
+    letter-spacing:0.2em;
+    opacity:0;
+    transition:opacity 0.4s;
+    pointer-events:none;
+    color:#fff;
+    text-shadow:0 0 30px rgba(255,255,255,0.5);
+  }
+
+  #touchHint{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:11px;
+    color:#333;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    pointer-events:none;
+  }
 </style>
 </head>
 <body>
 
 <div id="ui">
-  Tid: <span id="time">0.0</span>
+  <div id="timeDisplay">0.0s</div>
+  <div id="levelDisplay">Level 1</div>
   <div id="scoreboard"></div>
 </div>
 
@@ -70,23 +186,24 @@ input,button{
 
 <div id="startScreen" class="overlay">
   <h1>MUSEFLUKT</h1>
-  <p>
-  I dette spillet skal du dodge alle figurene så lenge du klarer.<br>
-  Det blir vanskeligere hvert 10. sekund.<br><br>
-  Lykke til!
-  </p>
-  <button onclick="start()">Start spill</button>
+  <p>Unngå alle figurene så lenge du klarer.<br>Vanskelighetsgraden øker hvert 10. sekund.</p>
+  <button onclick="start()">Start</button>
 </div>
 
 <canvas id="game"></canvas>
 
 <div id="gameOver" class="overlay" style="display:none;">
   <h2>Game Over</h2>
-  Din tid: <span id="finalTime"></span>
-  <input id="nameInput" placeholder="Navn">
-  <button onclick="saveScore()">Lagre</button>
-  <button onclick="restart()">Spill igjen</button>
+  <div class="score-big"><span id="finalTime"></span>s</div>
+  <div class="score-label">Din tid</div>
+  <input id="nameInput" placeholder="Ditt navn" maxlength="20">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+    <button onclick="saveScore()">Lagre</button>
+    <button onclick="restart()">Prøv igjen</button>
+  </div>
 </div>
+
+<div id="touchHint"></div>
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -105,7 +222,6 @@ input,button{
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Expose db functions to global scope so non-module scripts can use them
   window.firebaseDB = db;
   window.firebaseAddDoc = addDoc;
   window.firebaseCollection = collection;
@@ -114,243 +230,449 @@ input,button{
   window.firebaseOrderBy = orderBy;
   window.firebaseLimit = limit;
 
-  // Load scores on startup
-  window.addEventListener("load", () => {
-    displayScores();
-  });
+  window.addEventListener("load", () => { displayScores(); });
 </script>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// ── Audio Context ──────────────────────────────────────────────
+let audioCtx = null;
+function getAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, type, duration, vol=0.15){
+  try {
+    const ac = getAudio();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ac.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq*0.5, ac.currentTime+duration);
+    gain.gain.setValueAtTime(vol, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+duration);
+    osc.start();
+    osc.stop(ac.currentTime+duration);
+  } catch(e){}
+}
+
+function playLevelUp(){
+  try {
+    const ac = getAudio();
+    [440,550,660].forEach((f,i)=>{
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.type='square';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.08, ac.currentTime+i*0.1);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+i*0.1+0.15);
+      osc.start(ac.currentTime+i*0.1);
+      osc.stop(ac.currentTime+i*0.1+0.15);
+    });
+  } catch(e){}
+}
+
+function playGameOver(){
+  try {
+    const ac = getAudio();
+    [300,200,120].forEach((f,i)=>{
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.type='sawtooth';
+      osc.frequency.value = f;
+      gain.gain.setValueAtTime(0.1, ac.currentTime+i*0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+i*0.15+0.2);
+      osc.start(ac.currentTime+i*0.15);
+      osc.stop(ac.currentTime+i*0.15+0.25);
+    });
+  } catch(e){}
+}
+
+// ── Screen size normalization ──────────────────────────────────
+// Reference diagonal: ~1080p equivalent
+const REF_DIAG = Math.sqrt(1920*1920 + 1080*1080);
+
+function screenScale(){
+  const diag = Math.sqrt(canvas.width*canvas.width + canvas.height*canvas.height);
+  return diag / REF_DIAG;
+}
 
 function resize(){
-  canvas.width=window.innerWidth;
-  canvas.height=window.innerHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 resize();
-window.addEventListener("resize",resize);
+window.addEventListener("resize", resize);
 
-let shapes=[];
-let mouse={x:0,y:0};
-let startTime;
-let gameRunning=false;
-let lastSpawn=0;
-let spawnDelay=900;
-let level=1;
-let currentLevelShown=1;
+// ── Pointer (mouse + touch) ────────────────────────────────────
+let pointer = { x: -999, y: -999, active: false };
 
-document.addEventListener("mousemove",e=>{
-  mouse.x=e.clientX;
-  mouse.y=e.clientY;
+document.addEventListener("mousemove", e => {
+  pointer.x = e.clientX;
+  pointer.y = e.clientY;
+  pointer.active = true;
 });
-document.addEventListener("mouseleave",()=>endGame());
+document.addEventListener("mouseleave", () => {
+  if(gameRunning) endGame();
+});
 
-class Shape{
+document.addEventListener("touchstart", e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  pointer.x = t.clientX;
+  pointer.y = t.clientY;
+  pointer.active = true;
+  document.getElementById("touchHint").style.display = "none";
+}, {passive:false});
+
+document.addEventListener("touchmove", e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  pointer.x = t.clientX;
+  pointer.y = t.clientY;
+}, {passive:false});
+
+document.addEventListener("touchend", e => {
+  e.preventDefault();
+  if(gameRunning) endGame();
+}, {passive:false});
+
+// ── Particles ─────────────────────────────────────────────────
+let particles = [];
+
+function spawnParticles(x, y, color, count=18){
+  for(let i=0;i<count;i++){
+    const angle = (i/count)*Math.PI*2 + Math.random()*0.3;
+    const speed = (2+Math.random()*4) * screenScale();
+    particles.push({
+      x, y,
+      vx: Math.cos(angle)*speed,
+      vy: Math.sin(angle)*speed,
+      life: 1,
+      decay: 0.03+Math.random()*0.04,
+      size: (3+Math.random()*5)*screenScale(),
+      color
+    });
+  }
+}
+
+function updateParticles(){
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.1;
+    p.life -= p.decay;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size*p.life, 0, Math.PI*2);
+    ctx.fillStyle = p.color + Math.floor(p.life*255).toString(16).padStart(2,'0');
+    ctx.fill();
+  });
+}
+
+// ── Screen shake ───────────────────────────────────────────────
+let shakeAmt = 0;
+function triggerShake(amt){ shakeAmt = Math.max(shakeAmt, amt); }
+
+// ── Shape class ───────────────────────────────────────────────
+let shapes = [];
+let startTime;
+let gameRunning = false;
+let lastSpawn = 0;
+let spawnDelay = 900;
+let level = 1;
+let currentLevelShown = 1;
+
+const COLORS = {
+  rect: '#3a7fff',
+  circle: '#ffe94d',
+  poly: '#ff4040'
+};
+
+class Shape {
   constructor(){
-    this.size=20+Math.random()*60;
-    this.speed=(1+Math.random()*2) * (1 + level*0.35);
-    this.type=Math.floor(Math.random()*3);
+    const sc = screenScale();
 
-    let edge=Math.floor(Math.random()*4);
-    if(edge===0){this.x=0;this.y=Math.random()*canvas.height;this.vx=this.speed;this.vy=(Math.random()-0.5)*3;}
-    if(edge===1){this.x=canvas.width;this.y=Math.random()*canvas.height;this.vx=-this.speed;this.vy=(Math.random()-0.5)*3;}
-    if(edge===2){this.x=Math.random()*canvas.width;this.y=0;this.vx=(Math.random()-0.5)*3;this.vy=this.speed;}
-    if(edge===3){this.x=Math.random()*canvas.width;this.y=canvas.height;this.vx=(Math.random()-0.5)*3;this.vy=-this.speed;}
+    // Size relative to screen
+    const baseSize = canvas.width * 0.025;
+    this.size = (baseSize + Math.random() * baseSize * 2.5) * (0.7 + level*0.05);
+    this.size = Math.min(this.size, canvas.width * 0.12); // cap size
+
+    // Speed relative to screen diagonal
+    const baseSpeed = canvas.width * 0.003;
+    this.speed = (baseSpeed + Math.random()*baseSpeed*1.5) * (1 + level*0.25);
+
+    this.type = Math.floor(Math.random()*3);
+    this.rotation = Math.random()*Math.PI*2;
+    this.rotSpeed = (Math.random()-0.5)*0.05;
+    this.trail = [];
+
+    let edge = Math.floor(Math.random()*4);
+    const jitter = (Math.random()-0.5) * this.speed * 0.8;
+    if(edge===0){ this.x=0; this.y=Math.random()*canvas.height; this.vx=this.speed; this.vy=jitter; }
+    if(edge===1){ this.x=canvas.width; this.y=Math.random()*canvas.height; this.vx=-this.speed; this.vy=jitter; }
+    if(edge===2){ this.x=Math.random()*canvas.width; this.y=0; this.vx=jitter; this.vy=this.speed; }
+    if(edge===3){ this.x=Math.random()*canvas.width; this.y=canvas.height; this.vx=jitter; this.vy=-this.speed; }
 
     if(this.type===2){
-      this.sides=7+Math.floor(Math.random()*3);
+      this.sides = 5+Math.floor(Math.random()*5);
     }
+
+    this.color = this.type===0 ? COLORS.rect : this.type===1 ? COLORS.circle : COLORS.poly;
   }
 
   update(){
-    this.x+=this.vx;
-    this.y+=this.vy;
+    this.trail.push({x:this.x, y:this.y});
+    if(this.trail.length > 6) this.trail.shift();
+    this.x += this.vx;
+    this.y += this.vy;
+    this.rotation += this.rotSpeed;
   }
 
   draw(){
+    // Draw trail
+    this.trail.forEach((p, i) => {
+      const alpha = (i/this.trail.length) * 0.15;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, this.size*(i/this.trail.length)*0.5, 0, Math.PI*2);
+      ctx.fillStyle = this.color + Math.floor(alpha*255).toString(16).padStart(2,'0');
+      ctx.fill();
+    });
+
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
     ctx.beginPath();
 
     if(this.type===0){
-      ctx.fillStyle="blue";
-      ctx.rect(this.x,this.y,this.size,this.size*0.6);
+      // Rectangle
+      const w = this.size, h = this.size*0.6;
+      ctx.rect(-w/2, -h/2, w, h);
+      ctx.fillStyle = COLORS.rect;
+      ctx.shadowColor = COLORS.rect;
+      ctx.shadowBlur = 12;
     }
-
     if(this.type===1){
-      ctx.fillStyle="yellow";
-      ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+      // Circle
+      ctx.arc(0, 0, this.size, 0, Math.PI*2);
+      ctx.fillStyle = COLORS.circle;
+      ctx.shadowColor = COLORS.circle;
+      ctx.shadowBlur = 16;
     }
-
     if(this.type===2){
-      ctx.fillStyle="red";
+      // Polygon
       for(let i=0;i<this.sides;i++){
-        let angle=(i/this.sides)*Math.PI*2;
-        let px=this.x+Math.cos(angle)*this.size;
-        let py=this.y+Math.sin(angle)*this.size;
+        const angle = (i/this.sides)*Math.PI*2;
+        const px = Math.cos(angle)*this.size;
+        const py = Math.sin(angle)*this.size;
         if(i===0) ctx.moveTo(px,py);
         else ctx.lineTo(px,py);
       }
       ctx.closePath();
+      ctx.fillStyle = COLORS.poly;
+      ctx.shadowColor = COLORS.poly;
+      ctx.shadowBlur = 14;
     }
 
     ctx.fill();
+    ctx.restore();
+    ctx.shadowBlur = 0;
   }
 
   collide(){
+    const dx = pointer.x - this.x;
+    const dy = pointer.y - this.y;
+    const dist = Math.sqrt(dx*dx+dy*dy);
+
     if(this.type===0){
-      // Rektangel: sjekk om musen er innenfor rektangelets faktiske grenser
-      return mouse.x > this.x && mouse.x < this.x + this.size &&
-             mouse.y > this.y && mouse.y < this.y + this.size * 0.6;
+      // Rotated rect collision
+      const cos = Math.cos(-this.rotation);
+      const sin = Math.sin(-this.rotation);
+      const lx = cos*dx - sin*dy;
+      const ly = sin*dx + cos*dy;
+      return Math.abs(lx) < this.size/2 && Math.abs(ly) < this.size*0.3;
     }
-    // Sirkel og polygon: avstandssjekk fra sentrum
-    let dx=mouse.x-this.x;
-    let dy=mouse.y-this.y;
-    return Math.sqrt(dx*dx+dy*dy)<this.size;
+    return dist < this.size;
+  }
+
+  isOffscreen(){
+    const margin = this.size*2;
+    return this.x < -margin || this.x > canvas.width+margin ||
+           this.y < -margin || this.y > canvas.height+margin;
   }
 }
 
-function spawn(){
-  shapes.push(new Shape());
+// ── Player cursor glow ─────────────────────────────────────────
+function drawCursor(){
+  if(!pointer.active) return;
+  ctx.beginPath();
+  ctx.arc(pointer.x, pointer.y, 6*screenScale(), 0, Math.PI*2);
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = '#ffffff';
+  ctx.shadowBlur = 20;
+  ctx.fill();
+  ctx.shadowBlur = 0;
 }
 
+// ── Level message ──────────────────────────────────────────────
 function showLevelMessage(lvl){
-  const msg=document.getElementById("levelMessage");
-  msg.textContent="LEVEL " + lvl;
-  msg.style.opacity=1;
-  setTimeout(()=>msg.style.opacity=0,1500);
+  const msg = document.getElementById("levelMessage");
+  msg.textContent = "LEVEL " + lvl;
+  msg.style.opacity = 1;
+  setTimeout(()=>msg.style.opacity=0, 1500);
+  playLevelUp();
 }
 
+// ── Main loop ──────────────────────────────────────────────────
 function loop(timestamp){
-  if(!gameRunning)return;
+  if(!gameRunning) return;
 
-  ctx.fillStyle="#111";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  // Screen shake
+  let ox=0, oy=0;
+  if(shakeAmt > 0.1){
+    ox = (Math.random()-0.5)*shakeAmt;
+    oy = (Math.random()-0.5)*shakeAmt;
+    shakeAmt *= 0.8;
+    ctx.save();
+    ctx.translate(ox, oy);
+  }
 
-  let elapsed=(Date.now()-startTime)/1000;
+  ctx.fillStyle = "#0a0a0f";
+  ctx.fillRect(-10, -10, canvas.width+20, canvas.height+20);
 
-  level=Math.floor(elapsed/10)+1;
-  if(level>currentLevelShown){
-    currentLevelShown=level;
+  const elapsed = (Date.now()-startTime)/1000;
+  level = Math.floor(elapsed/10)+1;
+
+  if(level > currentLevelShown){
+    currentLevelShown = level;
     showLevelMessage(level);
-    spawnDelay*=0.65;
+    spawnDelay = Math.max(150, spawnDelay*0.68);
+    triggerShake(8);
   }
 
-  if(timestamp-lastSpawn>spawnDelay){
-    spawn();
-    lastSpawn=timestamp;
+  if(timestamp - lastSpawn > spawnDelay){
+    shapes.push(new Shape());
+    lastSpawn = timestamp;
   }
 
-  shapes.forEach(s=>{
+  // Remove offscreen shapes
+  shapes = shapes.filter(s => !s.isOffscreen());
+
+  updateParticles();
+
+  shapes.forEach(s => {
     s.update();
     s.draw();
-    if(s.collide())endGame();
+    if(s.collide()){
+      spawnParticles(pointer.x, pointer.y, s.color);
+      triggerShake(14);
+      endGame();
+    }
   });
 
-  document.getElementById("time").textContent=elapsed.toFixed(1);
+  drawCursor();
+
+  if(shakeAmt > 0.1) ctx.restore();
+
+  document.getElementById("timeDisplay").textContent = elapsed.toFixed(1) + "s";
+  document.getElementById("levelDisplay").textContent = "LEVEL " + level;
 
   requestAnimationFrame(loop);
 }
 
+// ── Game control ───────────────────────────────────────────────
 function start(){
-  document.getElementById("startScreen").style.display="none";
-  shapes=[];
-  startTime=Date.now();
-  spawnDelay=900;
-  level=1;
-  currentLevelShown=1;
-  gameRunning=true;
+  // Detect touch device
+  const isTouch = ('ontouchstart' in window);
+  if(isTouch){
+    document.getElementById("touchHint").textContent = "Hold fingeren på skjermen og beveg den";
+  }
+
+  document.getElementById("startScreen").style.display = "none";
+  shapes = [];
+  particles = [];
+  startTime = Date.now();
+  spawnDelay = 900;
+  level = 1;
+  currentLevelShown = 1;
+  gameRunning = true;
   requestAnimationFrame(loop);
 }
 
 function endGame(){
-  if(!gameRunning)return;
-  gameRunning=false;
-  let time=(Date.now()-startTime)/1000;
-  document.getElementById("finalTime").textContent=time.toFixed(1);
-  document.getElementById("gameOver").style.display="flex";
+  if(!gameRunning) return;
+  gameRunning = false;
+  playGameOver();
+  let time = (Date.now()-startTime)/1000;
+  document.getElementById("finalTime").textContent = time.toFixed(1);
+  document.getElementById("gameOver").style.display = "flex";
 }
 
-function restart(){
-  location.reload();
-}
+function restart(){ location.reload(); }
 
+// ── Firebase / scores ──────────────────────────────────────────
 async function saveScore(){
-  let name=document.getElementById("nameInput").value||"Anonym";
-  let time=parseFloat(document.getElementById("finalTime").textContent);
+  let name = document.getElementById("nameInput").value || "Anonym";
+  let time = parseFloat(document.getElementById("finalTime").textContent);
 
   try {
     const db = window.firebaseDB;
-    const addDoc = window.firebaseAddDoc;
-    const collection = window.firebaseCollection;
-
-    if(db && addDoc && collection){
-      await addDoc(collection(db, "scores"), {
-        name: name,
-        time: time,
-        timestamp: Date.now()
+    if(db){
+      await window.firebaseAddDoc(window.firebaseCollection(db,"scores"),{
+        name, time, timestamp: Date.now()
       });
-      console.log("Score lagret i Firebase!");
     } else {
-      // Fallback til localStorage om Firebase ikke er klar
-      let scores=JSON.parse(localStorage.getItem("scores")||"[]");
-      scores.push({name,time});
-      scores.sort((a,b)=>b.time-a.time);
-      scores=scores.slice(0,10);
-      localStorage.setItem("scores",JSON.stringify(scores));
+      localSave(name, time);
     }
-  } catch(err) {
-    console.error("Feil ved lagring:", err);
-    // Fallback til localStorage
-    let scores=JSON.parse(localStorage.getItem("scores")||"[]");
-    scores.push({name,time});
-    scores.sort((a,b)=>b.time-a.time);
-    scores=scores.slice(0,10);
-    localStorage.setItem("scores",JSON.stringify(scores));
-  }
+  } catch(e){ localSave(name, time); }
 
   restart();
 }
 
-async function displayScores(){
-  const scoreboard = document.getElementById("scoreboard");
-
-  try {
-    const db = window.firebaseDB;
-    const getDocs = window.firebaseGetDocs;
-    const collection = window.firebaseCollection;
-    const q_fn = window.firebaseQuery;
-    const orderBy = window.firebaseOrderBy;
-    const limit = window.firebaseLimit;
-
-    if(db && getDocs && collection){
-      const q = q_fn(collection(db, "scores"), orderBy("time", "desc"), limit(10));
-      const snapshot = await getDocs(q);
-      let html="<h3>Topp 10</h3>";
-      let i=1;
-      snapshot.forEach(doc => {
-        const s = doc.data();
-        html+=`${i}. ${s.name} - ${s.time}s<br>`;
-        i++;
-      });
-      scoreboard.innerHTML=html;
-      return;
-    }
-  } catch(err) {
-    console.error("Feil ved henting av scores:", err);
-  }
-
-  // Fallback til localStorage
-  let scores=JSON.parse(localStorage.getItem("scores")||"[]");
-  let html="<h3>Topp 10</h3>";
-  scores.forEach((s,i)=>{
-    html+=`${i+1}. ${s.name} - ${s.time}s<br>`;
-  });
-  scoreboard.innerHTML=html;
+function localSave(name, time){
+  let scores = JSON.parse(localStorage.getItem("scores")||"[]");
+  scores.push({name,time});
+  scores.sort((a,b)=>b.time-a.time);
+  localStorage.setItem("scores", JSON.stringify(scores.slice(0,10)));
 }
 
-// Initial load av scores (også kalt fra Firebase module når klar)
+async function displayScores(){
+  const el = document.getElementById("scoreboard");
+  try {
+    const db = window.firebaseDB;
+    if(db){
+      const q = window.firebaseQuery(
+        window.firebaseCollection(db,"scores"),
+        window.firebaseOrderBy("time","desc"),
+        window.firebaseLimit(10)
+      );
+      const snap = await window.firebaseGetDocs(q);
+      let html = "<h3>Topp 10</h3>";
+      let i=1;
+      snap.forEach(doc=>{
+        const s=doc.data();
+        html+=`${i}. ${s.name} — ${s.time}s<br>`;
+        i++;
+      });
+      el.innerHTML = html;
+      return;
+    }
+  } catch(e){}
+
+  let scores = JSON.parse(localStorage.getItem("scores")||"[]");
+  let html = "<h3>Topp 10</h3>";
+  scores.forEach((s,i)=>{ html+=`${i+1}. ${s.name} — ${s.time}s<br>`; });
+  el.innerHTML = html;
+}
+
 displayScores();
 </script>
-
 </body>
 </html>
