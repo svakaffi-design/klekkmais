@@ -323,7 +323,7 @@ document.addEventListener("mouseleave", () => {
   if(gameRunning) endGame();
 });
 
-document.addEventListener("touchstart", e => {
+canvas.addEventListener("touchstart", e => {
   e.preventDefault();
   const t = e.touches[0];
   pointer.x = t.clientX;
@@ -332,14 +332,14 @@ document.addEventListener("touchstart", e => {
   document.getElementById("touchHint").style.display = "none";
 }, {passive:false});
 
-document.addEventListener("touchmove", e => {
+canvas.addEventListener("touchmove", e => {
   e.preventDefault();
   const t = e.touches[0];
   pointer.x = t.clientX;
   pointer.y = t.clientY;
 }, {passive:false});
 
-document.addEventListener("touchend", e => {
+canvas.addEventListener("touchend", e => {
   e.preventDefault();
   if(gameRunning) endGame();
 }, {passive:false});
