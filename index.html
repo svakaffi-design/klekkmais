@@ -1,264 +1,49 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="no">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KLEKKMAIS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #000;
-      font-family: 'Share Tech Mono', monospace;
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    canvas {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-    }
-    .content {
-      position: relative;
-      z-index: 10;
-      opacity: 0;
-      animation: fadeIn 2s ease 0.8s forwards;
-    }
-    @keyframes fadeIn { to { opacity: 1; } }
-    .title-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: default;
-      font-size: clamp(3rem, 10vw, 7rem);
-      font-weight: 400;
-      text-transform: uppercase;
-      height: 1.2em;
-    }
-    .letter {
-      display: inline-block;
-      color: #fff;
-      transition: transform 0.55s cubic-bezier(0.4,0,0.2,1), opacity 0.45s ease;
-      line-height: 1;
-    }
-    #square {
-      position: fixed;
-      background: #fff;
-      z-index: 50;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* Game menu on white screen */
-    #game-menu {
-      position: fixed;
-      inset: 0;
-      z-index: 60;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.4rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
-    }
-    #game-menu.visible {
-      opacity: 1;
-      pointer-events: all;
-    }
-    .game-item {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(1rem, 3vw, 1.6rem);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: #000;
-      cursor: pointer;
-      text-decoration: none;
-      transition: opacity 0.2s ease;
-      opacity: 0;
-      transform: translateY(8px);
-      transition: opacity 0.35s ease, transform 0.35s ease, color 0.2s ease;
-    }
-    .game-item:hover {
-      opacity: 0.4;
-    }
-    #game-menu.visible .game-item {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    /* stagger */
-    #game-menu.visible .game-item:nth-child(1) { transition-delay: 0.05s; }
-    #game-menu.visible .game-item:nth-child(2) { transition-delay: 0.12s; }
-    #game-menu.visible .game-item:nth-child(3) { transition-delay: 0.19s; }
-    #game-menu.visible .game-item:nth-child(4) { transition-delay: 0.26s; }
-    #game-menu.visible .game-item:nth-child(5) { transition-delay: 0.33s; }
-
-    .coords {
-      font-size: 0.6rem;
-      letter-spacing: 0.3em;
-      color: rgba(255,255,255,0.12);
-      position: fixed;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      opacity: 0;
-      animation: fadeIn 3s ease 2s forwards;
-      white-space: nowrap;
-    }
-  </style>
-</head>
-<body>
-
-<canvas id="bg"></canvas>
-<div id="square"></div>
-<div id="game-menu">
-  <a class="game-item" href="./museflukt/index.html">Museflukt</a>
-</div>
-
-<div class="content">
-  <h1 class="title-wrap" id="title"></h1>
-</div>
-<p class="coords" id="coords"></p>
-
-<script>
-const word = 'KLEKKMAIS';
-const titleEl = document.getElementById('title');
-const sq = document.getElementById('square');
-const menu = document.getElementById('game-menu');
-const letters = [];
-
-for (const ch of word) {
-  const s = document.createElement('span');
-  s.classList.add('letter');
-  s.textContent = ch;
-  titleEl.appendChild(s);
-  letters.push(s);
-}
-
-function collapseLetters() {
-  const tr = titleEl.getBoundingClientRect();
-  const cx = tr.left + tr.width / 2;
-  const cy = tr.top  + tr.height / 2;
-  letters.forEach(s => {
-    const r = s.getBoundingClientRect();
-    s.style.transform = `translate(${cx-(r.left+r.width/2)}px,${cy-(r.top+r.height/2)}px)`;
-    s.style.opacity = '0';
-  });
-}
-function restoreLetters() {
-  letters.forEach(s => { s.style.transform=''; s.style.opacity=''; });
-}
-
-let committed = false;
-let commitTimer = null;
-let active = false;
-
-function startSequence() {
-  if (active || committed) return;
-  active = true;
-
-  const fs = parseFloat(getComputedStyle(titleEl).fontSize);
-  const size = Math.round(fs * 0.72);
-  const cx = window.innerWidth / 2;
-  const cy = window.innerHeight / 2;
-
-  sq.style.transition = 'none';
-  sq.style.width  = size + 'px';
-  sq.style.height = size + 'px';
-  sq.style.left   = (cx - size/2) + 'px';
-  sq.style.top    = (cy - size/2) + 'px';
-  sq.style.transformOrigin = 'center center';
-  sq.style.transform = 'scale(1)';
-  sq.style.opacity = '1';
-  sq.style.pointerEvents = 'all';
-
-  collapseLetters();
-
-  const diag = Math.hypot(window.innerWidth, window.innerHeight);
-  const bigScale = Math.ceil((diag / size) * 1.6);
-
-  setTimeout(() => {
-    if (!active) return;
-    sq.style.transition = 'transform 1s cubic-bezier(0.4, 0, 0.2, 1)';
-    sq.style.transform = `scale(${bigScale})`;
-
-    menu.classList.add('visible');
-
-    commitTimer = setTimeout(() => {
-      committed = true;
-    }, 5000);
-  }, 350);
-}
-
-function endSequence() {
-  if (!active || committed) return;
-  active = false;
-  clearTimeout(commitTimer);
-  commitTimer = null;
-
-  menu.classList.remove('visible');
-  sq.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease 0.4s';
-  sq.style.transform = 'scale(1)';
-  sq.style.opacity = '0';
-  sq.style.pointerEvents = 'none';
-  restoreLetters();
-}
-
-document.addEventListener('mousemove', e => {
-  if (committed) return;
-  const over = isOver(e.clientX, e.clientY);
-  if (over && !active) startSequence();
-  else if (!over && active) endSequence();
-});
-
-function isOver(x, y) {
-  for (const el of [titleEl, sq, menu]) {
-    const r = el.getBoundingClientRect();
-    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return true;
-  }
-  return false;
-}
-
-// ── Starfield ─────────────────────────────────────────────
-const canvas = document.getElementById('bg');
-const ctx = canvas.getContext('2d');
-let W, H, stars = [];
-
-function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-function createStar(rand) {
-  return { x:(Math.random()-.5)*W, y:(Math.random()-.5)*H, z:rand?Math.random()*W:W };
-}
-function initStars() { stars=[]; for(let i=0;i<260;i++) stars.push(createStar(true)); }
-function loop() {
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-  const cx=W/2, cy=H/2;
-  for (let s of stars) {
-    s.z-=1.6;
-    if(s.z<=0){Object.assign(s,createStar(false));continue;}
-    const sx=(s.x/s.z)*W+cx, sy=(s.y/s.z)*H+cy;
-    const sz=Math.max(0.4,(1-s.z/W)*2), al=Math.min(1,(1-s.z/W)*1.4);
-    ctx.beginPath(); ctx.arc(sx,sy,sz,0,Math.PI*2);
-    ctx.fillStyle=`rgba(255,255,255,${al})`; ctx.fill();
-  }
-  requestAnimationFrame(loop);
-}
-
-const coordsEl = document.getElementById('coords');
-let tick=0;
-setInterval(()=>{
-  tick+=0.012;
-  const lat=(Math.sin(tick)*90).toFixed(3);
-  const lng=(Math.cos(tick*.7)*180).toFixed(3);
-  coordsEl.textContent=`${Math.abs(lat)}°${lat>=0?'N':'S'}  ${Math.abs(lng)}°${lng>=0?'E':'W'}  · ALT ∞`;
-},80);
-
-window.addEventListener('resize',()=>{resize();initStars();});
-resize(); initStars(); loop();
-</script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>6. trinn – læring og spill</title>
+    <style>
+      :root { --ink:#17324d; --muted:#5b6d7e; --paper:#f7fbff; --blue:#246bce; --yellow:#ffd761; --line:#dbe7f1; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family:ui-rounded, "Avenir Next", Avenir, "Segoe UI", sans-serif; color:var(--ink); background:var(--paper); }
+      header { background:linear-gradient(125deg,#1555ad,#2d86db); color:white; padding:3.4rem 1.25rem 4.75rem; }
+      .wrap { max-width:1100px; margin:auto; }
+      .tag { display:inline-block; padding:.35rem .7rem; border-radius:99px; background:rgba(255,255,255,.16); font-weight:700; font-size:.88rem; }
+      h1 { font-size:clamp(2rem,5vw,3.7rem); margin:.7rem 0 .45rem; letter-spacing:-.04em; }
+      header p { max-width:650px; margin:0; font-size:1.1rem; line-height:1.6; opacity:.95; }
+      main { max-width:1100px; margin:-2.4rem auto 3rem; padding:0 1.25rem; }
+      .tools { display:flex; gap:.75rem; align-items:center; background:white; padding:1rem; border-radius:18px; box-shadow:0 10px 26px #20456b1c; }
+      input { width:100%; border:1px solid var(--line); padding:.85rem 1rem; border-radius:10px; font:inherit; color:var(--ink); }
+      .tools label { white-space:nowrap; font-weight:700; }
+      .intro { margin:2.5rem 0 1.1rem; color:var(--muted); line-height:1.55; }
+      .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(245px,1fr)); gap:1rem; }
+      section { background:white; border:1px solid var(--line); border-radius:16px; padding:1.25rem; }
+      h2 { font-size:1.22rem; margin:0 0 .25rem; }
+      .description { color:var(--muted); margin:0 0 1rem; font-size:.94rem; line-height:1.4; }
+      .links { display:grid; gap:.7rem; }
+      a.card { text-decoration:none; color:var(--ink); display:block; padding:.75rem; border-radius:10px; background:#f5f9fd; border:1px solid transparent; transition:.15s; }
+      a.card:hover, a.card:focus { border-color:#8bb8ec; background:#edf6ff; transform:translateY(-1px); }
+      .name { display:block; font-weight:800; }
+      .note { display:block; color:var(--muted); font-size:.84rem; margin-top:.18rem; }
+      footer { text-align:center; color:var(--muted); font-size:.85rem; padding:0 1rem 2rem; }
+      @media (max-width:540px) { .tools { align-items:stretch; flex-direction:column; } header { padding-top:2.5rem; } }
+    </style>
+  </head>
+  <body>
+    <header><div class="wrap">
+      <h1>6. trinn</h1>
+    </div></header>
+    <main>
+      <p class="intro">Velg et felt og legg til lenker etter hvert.</p>
+      <div class="grid" id="sections">
+        <section data-search="norsk"><h2>📚 Norsk</h2><p class="description">Legg til lenker til norskfaget her.</p><div class="links"></div></section>
+        <section data-search="matte matematikk"><h2>🔢 Matte</h2><p class="description">Legg til lenker til matematikk her.</p><div class="links"></div></section>
+        <section data-search="engelsk"><h2>🗣️ Engelsk</h2><p class="description">Legg til lenker til engelskfaget her.</p><div class="links"></div></section>
+        <section data-search="diverse"><h2>📌 Diverse</h2><p class="description">Legg til andre nyttige lenker her.</p><div class="links"></div></section>
+      </div>
+    </main>
+    <footer>6. trinn</footer>
+  </body>
 </html>
